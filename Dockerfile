@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy server files
 COPY server/package*.json ./server/
-COPY database ./database
+COPY database ./server/database
 
 # Install dependencies
 RUN cd server && npm install && npm run init-db
