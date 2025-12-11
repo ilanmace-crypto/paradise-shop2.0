@@ -7,8 +7,7 @@ import './AdminPage.css';
 const AdminPage = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [newFlavorName, setNewFlavorName] = useState('');
-  const [newFlavorStock, setNewFlavorStock] = useState(1);
+  const [newFlavorInputs, setNewFlavorInputs] = useState({}); // { productId: { name, stock } }
   const [uploadingImage, setUploadingImage] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('liquids');
 
@@ -131,7 +130,8 @@ const AdminPage = () => {
   };
 
   const addFlavor = (productId) => {
-    if (newFlavorName.trim()) {
+    const input = newFlavorInputs[productId] || { name: '', stock: 1 };
+    if (input.name.trim()) {
       setProducts(prev => prev.map(product => {
         if (product.id === productId) {
           const flavors = product.flavors || {};
@@ -139,15 +139,28 @@ const AdminPage = () => {
             ...product,
             flavors: {
               ...flavors,
-              [newFlavorName.trim()]: newFlavorStock
+              [input.name.trim()]: input.stock
             }
           };
         }
         return product;
       }));
-      setNewFlavorName('');
-      setNewFlavorStock(1);
+      // Сбрасываем поля для этого товара
+      setNewFlavorInputs(prev => ({
+        ...prev,
+        [productId]: { name: '', stock: 1 }
+      }));
     }
+  };
+
+  const updateNewFlavorInput = (productId, field, value) => {
+    setNewFlavorInputs(prev => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [field]: field === 'stock' ? parseInt(value) || 1 : value
+      }
+    }));
   };
 
   const saveChanges = async () => {
@@ -307,14 +320,14 @@ const AdminPage = () => {
                         <input
                           type="text"
                           placeholder="Новый вкус"
-                          value={newFlavorName}
-                          onChange={(e) => setNewFlavorName(e.target.value)}
+                          value={newFlavorInputs[product.id]?.name || ''}
+                          onChange={(e) => updateNewFlavorInput(product.id, 'name', e.target.value)}
                         />
                         <input
                           type="number"
                           min="1"
-                          value={newFlavorStock}
-                          onChange={(e) => setNewFlavorStock(parseInt(e.target.value) || 1)}
+                          value={newFlavorInputs[product.id]?.stock || 1}
+                          onChange={(e) => updateNewFlavorInput(product.id, 'stock', e.target.value)}
                           placeholder="Кол-во"
                         />
                         <button onClick={() => addFlavor(product.id)}>
