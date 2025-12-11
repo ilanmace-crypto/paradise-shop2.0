@@ -303,6 +303,7 @@ const AdminPage = () => {
                   {editingProduct === product.id && selectedCategory === 'liquids' && (
                     <div className="flavors-admin">
                       <h4>Вкусы и количество банок:</h4>
+                      <p>DEBUG: Блок вкусов должен быть виден здесь!</p>
                       
                       {product.flavors && Object.entries(product.flavors).map(([flavor, stock]) => (
                         <div key={flavor} className="flavor-edit">
