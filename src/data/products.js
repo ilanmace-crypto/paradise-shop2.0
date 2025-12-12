@@ -10,10 +10,28 @@ export const categories = [
 export const getProducts = async () => {
   try {
     const data = await fetchProducts();
-    return data.map(product => ({
-      ...product,
-      flavors: product.flavors ? JSON.parse(product.flavors) : {}
-    }));
+    return data.map(product => {
+      // Map backend category_name to frontend category id
+      const matchedCategory = categories.find(
+        (cat) => cat.name === product.category_name
+      );
+
+      let flavorsParsed = {};
+      try {
+        flavorsParsed = product.flavors ? JSON.parse(product.flavors) : {};
+      } catch (_) {
+        // If already object, keep as is
+        flavorsParsed = typeof product.flavors === 'object' && product.flavors !== null
+          ? product.flavors
+          : {};
+      }
+
+      return {
+        ...product,
+        category: matchedCategory ? matchedCategory.id : (product.category || null),
+        flavors: flavorsParsed,
+      };
+    });
   } catch (error) {
     console.error('Error loading products from API:', error);
     throw error;
@@ -24,9 +42,19 @@ export const getProducts = async () => {
 export const createProduct = async (product) => {
   try {
     const data = await addProduct(product);
+    const matchedCategory = categories.find(
+      (cat) => cat.name === data.category_name
+    );
+    let flavorsParsed = {};
+    try {
+      flavorsParsed = data.flavors ? JSON.parse(data.flavors) : {};
+    } catch (_) {
+      flavorsParsed = typeof data.flavors === 'object' && data.flavors !== null ? data.flavors : {};
+    }
     return {
       ...data,
-      flavors: data.flavors ? JSON.parse(data.flavors) : {}
+      category: matchedCategory ? matchedCategory.id : (data.category || null),
+      flavors: flavorsParsed,
     };
   } catch (error) {
     console.error('Error creating product in API:', error);
@@ -38,9 +66,19 @@ export const createProduct = async (product) => {
 export const updateProduct = async (id, updates) => {
   try {
     const data = await modifyProduct(id, updates);
+    const matchedCategory = categories.find(
+      (cat) => cat.name === data.category_name
+    );
+    let flavorsParsed = {};
+    try {
+      flavorsParsed = data.flavors ? JSON.parse(data.flavors) : {};
+    } catch (_) {
+      flavorsParsed = typeof data.flavors === 'object' && data.flavors !== null ? data.flavors : {};
+    }
     return {
       ...data,
-      flavors: data.flavors ? JSON.parse(data.flavors) : {}
+      category: matchedCategory ? matchedCategory.id : (data.category || null),
+      flavors: flavorsParsed,
     };
   } catch (error) {
     console.error('Error updating product in API:', error);
