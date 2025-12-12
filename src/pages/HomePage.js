@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getProducts, categories } from '../data/products';
 import { useCart } from '../context/CartContext';
+import ProductModal from '../components/ProductModal';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -12,6 +13,8 @@ const HomePage = () => {
   const [imageErrors, setImageErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalSelectedFlavor, setModalSelectedFlavor] = useState('');
   const { addToCartWithFlavor } = useCart();
 
   useEffect(() => {
@@ -49,8 +52,27 @@ const HomePage = () => {
   }, []);
 
   const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === selectedCategory);
+    ? products.filter(product => {
+        // Скрываем товары, у которых все вкусы закончены (только для жидкостей)
+        if (product.category === 'liquids' && product.flavors) {
+          const flavors = Object.entries(product.flavors);
+          if (flavors.length === 0) return true; // Если вкусов нет, показываем
+          const hasStock = flavors.some(([flavor, stock]) => stock > 0);
+          return hasStock;
+        }
+        return true;
+      })
+    : products.filter(product => {
+        const categoryMatch = product.category === selectedCategory;
+        // Дополнительная фильтрация для жидкостей
+        if (categoryMatch && product.category === 'liquids' && product.flavors) {
+          const flavors = Object.entries(product.flavors);
+          if (flavors.length === 0) return true;
+          const hasStock = flavors.some(([flavor, stock]) => stock > 0);
+          return hasStock;
+        }
+        return categoryMatch;
+      });
 
   const handleAddToCart = (product) => {
     if (product.category === 'liquids' && product.flavors) {
@@ -88,6 +110,24 @@ const HomePage = () => {
       ...prev,
       [productId]: true
     }));
+  };
+
+  const openModal = (product) => {
+    setModalProduct(product);
+    setModalSelectedFlavor('');
+  };
+
+  const closeModal = () => {
+    setModalProduct(null);
+    setModalSelectedFlavor('');
+  };
+
+  const handleModalAddToCart = (product, flavor) => {
+    if (product.category === 'liquids' && product.flavors && !flavor) {
+      alert('Пожалуйста, выберите вкус');
+      return;
+    }
+    addToCartWithFlavor(product, flavor, 1);
   };
 
   const getPlaceholderImage = () => {
@@ -191,9 +231,12 @@ const HomePage = () => {
                   <div className="product-footer">
                     <span className="product-price">{product.price} BYN</span>
                     <div className="product-actions">
-                      <Link to={`/product/${product.id}`} className="product-btn">
+                      <button 
+                        onClick={() => openModal(product)}
+                        className="product-btn"
+                      >
                         Подробнее
-                      </Link>
+                      </button>
                       <button 
                         onClick={() => handleAddToCart(product)} 
                         className="add-to-cart-btn"
@@ -208,6 +251,15 @@ const HomePage = () => {
           )}
         </div>
       </div>
+      
+      <ProductModal
+        product={modalProduct}
+        isOpen={!!modalProduct}
+        onClose={closeModal}
+        onAddToCart={handleModalAddToCart}
+        selectedFlavor={modalSelectedFlavor}
+        setSelectedFlavor={setModalSelectedFlavor}
+      />
     </div>
   );
 };
