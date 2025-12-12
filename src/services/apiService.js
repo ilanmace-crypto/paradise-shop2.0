@@ -79,14 +79,23 @@ export const getCategories = async () => {
 
 // Auth API (логин только по паролю, username = 'admin')
 export const login = async (password) => {
-  const payload = { username: 'admin', password };
-  console.log('ADMIN LOGIN PAYLOAD:', JSON.stringify(payload));
+  // Убедимся, что пароль не перезаписывается
+  const cleanPassword = String(password || '').trim();
+  const payload = { username: 'admin', password: cleanPassword };
+  
+  console.log('ADMIN LOGIN PAYLOAD (before fetch):', {
+    passwordLength: cleanPassword.length,
+    passwordStartsWith: cleanPassword.substring(0, 3) + (cleanPassword.length > 3 ? '...' : ''),
+    fullPayload: { ...payload, password: '***' } // Не логируем полный пароль
+  });
 
   const response = await fetch(`${API_BASE_URL}/admin/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Debug': 'true' // Добавим кастомный заголовок для отладки
     },
+    credentials: 'same-origin',
     body: JSON.stringify(payload),
   });
   
