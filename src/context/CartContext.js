@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext } from 'react';
-import { getProducts } from '../data/products';
 import { sendOrderNotification } from '../services/telegram';
 import { useUser } from './UserContext';
 
@@ -102,27 +101,7 @@ export const CartProvider = ({ children }) => {
       // Не прерываем процесс оформления заказа при ошибке отправки
     }
 
-    const products = getProducts();
-    const updatedProducts = products.map(product => {
-      const productCopy = { ...product };
-      
-      cartItems.forEach(item => {
-        if (item.id === product.id && item.category === 'liquids' && item.flavor && productCopy.flavors) {
-          const currentStock = productCopy.flavors[item.flavor] || 0;
-          const newStock = Math.max(0, currentStock - item.quantity);
-          
-          if (newStock === 0) {
-            delete productCopy.flavors[item.flavor];
-          } else {
-            productCopy.flavors[item.flavor] = newStock;
-          }
-        }
-      });
-      
-      return productCopy;
-    });
-    
-    // Сохраняем заказ в историю
+    // Сохраняем заказ в историю (локально)
     try {
       const order = {
         id: generateOrderId(),
