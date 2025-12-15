@@ -211,7 +211,7 @@
 .product-image {
   position: relative !important;
   width: 100% !important;
-  height: auto !important;
+  height: 240px !important;
   overflow: hidden !important;
   padding: 14px !important;
   display: flex !important;
@@ -223,8 +223,7 @@
 
 .product-image img {
   width: 100%;
-  height: auto;
-  max-height: 240px;
+  height: 100%;
   object-fit: contain;
   transition: all 0.3s ease;
 }
@@ -565,6 +564,7 @@
   }
   
   .product-image {
+    height: 200px;
     padding: 12px;
   }
   

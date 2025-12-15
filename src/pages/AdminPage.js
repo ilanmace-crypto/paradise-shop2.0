@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, createProduct, updateProduct, deleteProduct as deleteProductApi } from '../data/products';
-import { updateProductImage } from '../services/apiService';
 import { categories } from '../data/products';
 import { fileToBase64, isValidImageFile, formatFileSize } from '../utils/imageUtils';
 import './AdminPage.css';
@@ -317,6 +316,18 @@ const AdminPage = () => {
                     />
                   </div>
 
+                  {product.category !== 'liquids' && (
+                    <div className="edit-field">
+                      <label>Количество (шт.):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={typeof product.stock === 'number' ? product.stock : 0}
+                        onChange={(e) => handleProductChange(product.id, 'stock', Math.max(0, parseInt(e.target.value) || 0))}
+                      />
+                    </div>
+                  )}
+
                   <div className="edit-field">
                     <label>Изображение:</label>
                     <div className="image-upload">
@@ -398,6 +409,10 @@ const AdminPage = () => {
                   <p><strong>Цена:</strong> {product.price} BYN</p>
                   <p><strong>Описание:</strong> {product.description}</p>
                   <p><strong>В наличии:</strong> {product.in_stock ? 'Да' : 'Нет'}</p>
+
+                  {product.category !== 'liquids' && (
+                    <p><strong>Количество:</strong> {typeof product.stock === 'number' ? product.stock : 0} шт.</p>
+                  )}
                   
                   {product.category === 'liquids' && product.flavors && (
                     <div className="flavors-info">
