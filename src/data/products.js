@@ -80,6 +80,10 @@ export const getProducts = async () => {
     // Сначала пробуем загрузить из API
     const data = await fetchProducts();
     return data.map(product => {
+      const normalizedCategoryName = String(product.category_name || '')
+        .trim()
+        .toLowerCase();
+
       // Map backend category_name to frontend category id
       const matchedCategory = categories.find(
         (cat) => cat.name === product.category_name
@@ -98,9 +102,16 @@ export const getProducts = async () => {
       // Если категория не проставлена на бэке, но есть вкусы,
       // считаем товар жидкостью, чтобы работал выбор вкуса.
       const hasFlavors = flavorsParsed && Object.keys(flavorsParsed).length > 0;
-      const mappedCategory = matchedCategory
-        ? matchedCategory.id
-        : (product.category || (hasFlavors ? 'liquids' : null));
+
+      const inferredCategory = (() => {
+        if (matchedCategory) return matchedCategory.id;
+        if (normalizedCategoryName.includes('карт')) return 'cartridges';
+        if (normalizedCategoryName.includes('однораз')) return 'disposable';
+        if (normalizedCategoryName.includes('жидк')) return 'liquids';
+        return null;
+      })();
+
+      const mappedCategory = inferredCategory || (product.category || (hasFlavors ? 'liquids' : null));
 
       return {
         ...product,

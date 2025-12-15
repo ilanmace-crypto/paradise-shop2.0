@@ -356,6 +356,9 @@
   z-index: 100 !important;
   max-height: 250px !important;
   overflow-y: auto !important;
+  padding: 6px 0 10px !important;
+  scroll-padding-bottom: 12px;
+  overscroll-behavior: contain;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
