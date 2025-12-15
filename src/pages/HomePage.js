@@ -183,6 +183,12 @@ const HomePage = () => {
                 <div className="product-info">
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-description">{product.description}</p>
+
+                  {product.category !== 'liquids' && typeof product.stock === 'number' && (
+                    <div className={`stock-badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                      {product.stock > 0 ? `В наличии: ${product.stock} шт.` : 'Нет в наличии'}
+                    </div>
+                  )}
                   
                   {product.category === 'liquids' && product.flavors && Object.keys(product.flavors).length > 0 && (
                     <div className="flavor-selector">

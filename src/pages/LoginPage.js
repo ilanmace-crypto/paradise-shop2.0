@@ -94,12 +94,6 @@ const LoginPage = () => {
             
             <button type="submit" className="login-btn">Войти</button>
           </form>
-          
-          <div className="login-info">
-            <p>Данные для входа:</p>
-            <p>Логин: admin</p>
-            <p>Пароль: paradise251208</p>
-          </div>
         </div>
       </div>
     </div>
