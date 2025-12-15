@@ -113,6 +113,8 @@
   padding: 6px 0 20px;
   scroll-padding-bottom: 24px;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   z-index: 1000;
 }
 

@@ -11,6 +11,21 @@ const AdminPage = () => {
   const [uploadingImage, setUploadingImage] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('liquids');
 
+  const categoryIdFromSlug = (slug) => {
+    if (slug === 'liquids') return 1;
+    if (slug === 'cartridges') return 2;
+    if (slug === 'disposable') return 3;
+    return null;
+  };
+
+  const categorySlugFromId = (id) => {
+    const num = Number(id);
+    if (num === 1) return 'liquids';
+    if (num === 2) return 'cartridges';
+    if (num === 3) return 'disposable';
+    return null;
+  };
+
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -24,7 +39,9 @@ const AdminPage = () => {
 
           return {
             ...product,
-            category: matchedCategory ? matchedCategory.id : product.category || 'liquids',
+            category: matchedCategory
+              ? matchedCategory.id
+              : (categorySlugFromId(product.category_id) || categorySlugFromId(product.category) || product.category || 'liquids'),
           };
         });
 
@@ -42,6 +59,7 @@ const AdminPage = () => {
       const newProduct = {
         name: 'Новый товар',
         category: selectedCategory,
+        category_id: categoryIdFromSlug(selectedCategory),
         price: 0,
         image: '',
         description: '',
@@ -132,12 +150,13 @@ const AdminPage = () => {
       console.log('Using main update endpoint...');
       const product = products.find(p => p.id === productId);
       if (product) {
+        const category_id = categoryIdFromSlug(product.category) ?? product.category_id ?? null;
         const updateData = { 
           id: product.id,
           name: product.name,
           description: product.description,
           price: product.price,
-          category_id: product.category_id,
+          category_id,
           stock: product.stock,
           flavors: product.flavors,
           image: base64Image 
@@ -193,11 +212,7 @@ const AdminPage = () => {
   const saveChanges = async () => {
     try {
       for (const product of products) {
-        // Находим category_id по имени категории
-        const matchedCategory = categories.find(
-          (cat) => cat.name === product.category_name
-        );
-        const category_id = matchedCategory ? matchedCategory.id : null;
+        const category_id = categoryIdFromSlug(product.category) ?? product.category_id ?? null;
 
         // Создаем payload только с нужными полями
         const payload = {

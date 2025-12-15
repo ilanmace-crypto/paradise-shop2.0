@@ -122,6 +122,8 @@
   padding: 6px 0 18px;
   scroll-padding-bottom: 20px;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
