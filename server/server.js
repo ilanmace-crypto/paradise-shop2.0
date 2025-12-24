@@ -4,17 +4,17 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-// Используем PostgreSQL если DATABASE_URL задан, иначе SQLite
+// Используем PostgreSQL если DATABASE_URL задан
 const apiRoutes = process.env.DATABASE_URL ? 
   require('./routes/api_postgresql') : 
-  require('./routes/api_sqlite');
+  null;
 const adminRoutes = process.env.DATABASE_URL ? 
   require('./routes/admin_postgresql') : 
-  require('./routes/admin_sqlite');
+  null;
 
 const initDatabase = process.env.DATABASE_URL ? 
   require('./config/postgresql_init').initPostgresDatabase : 
-  require('./config/sqlite').initDatabase;
+  null;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,8 +33,8 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Routes
-app.use('/api', apiRoutes);
-app.use('/admin', adminRoutes);
+if (apiRoutes) app.use('/api', apiRoutes);
+if (adminRoutes) app.use('/admin', adminRoutes);
 
 // Health check (before rate limiting)
 app.get('/health', (req, res) => {
@@ -58,8 +58,12 @@ app.listen(PORT, async () => {
   
   // Initialize database
   try {
-    await initDatabase();
-    console.log('Database initialized successfully!');
+    if (initDatabase) {
+      await initDatabase();
+      console.log('Database initialized successfully!');
+    } else {
+      console.log('No database configured - running without database');
+    }
   } catch (error) {
     console.error('Database initialization failed:', error);
     // Don't exit, let server start anyway
