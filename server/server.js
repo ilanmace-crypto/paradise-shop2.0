@@ -4,8 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const createTables = require('./auto_create_tables');
-
 const apiRoutes = require('./routes/api');
 const adminRoutes = require('./routes/admin');
 
@@ -45,15 +43,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
-  
-  // Auto-create tables on server start
-  try {
-    await createTables();
-    console.log('Database tables created successfully!');
-  } catch (error) {
-    console.error('Database setup failed:', error);
-  }
 });
