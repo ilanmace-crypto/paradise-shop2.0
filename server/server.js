@@ -36,9 +36,9 @@ app.use('/api/', limiter);
 app.use('/api', apiRoutes);
 app.use('/admin', adminRoutes);
 
-// Health check
+// Health check (before rate limiting)
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Error handling
@@ -56,11 +56,12 @@ app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   
-  // Initialize SQLite database
+  // Initialize database
   try {
     await initDatabase();
-    console.log('SQLite database initialized successfully!');
+    console.log('Database initialized successfully!');
   } catch (error) {
     console.error('Database initialization failed:', error);
+    // Don't exit, let server start anyway
   }
 });
