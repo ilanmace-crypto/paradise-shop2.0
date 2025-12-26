@@ -6,6 +6,9 @@ require('dotenv').config();
 
 // Подключаем роуты
 const productsRouter = require('./routes/products');
+const ordersRouter = require('./routes/orders');
+const usersRouter = require('./routes/users');
+const statsRouter = require('./routes/stats');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Railway использует порт 3000
@@ -36,6 +39,9 @@ app.use('/api/', limiter);
 
 // Routes
 app.use('/api/products', productsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/stats', statsRouter);
 
 // Debug route
 app.get('/api/debug', (req, res) => {
@@ -43,7 +49,10 @@ app.get('/api/debug', (req, res) => {
     message: 'Debug route working',
     timestamp: new Date().toISOString(),
     routes: {
-      products: 'loaded'
+      products: 'loaded',
+      orders: 'loaded',
+      users: 'loaded',
+      stats: 'loaded'
     },
     proxy: {
       trust: app.get('trust proxy'),
