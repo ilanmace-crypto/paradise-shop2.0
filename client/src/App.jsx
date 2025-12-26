@@ -328,20 +328,20 @@ function MainApp() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch('/api/products')
+        const response = await fetch('https://paradise-shop-production.up.railway.app/api/products');
         if (response.ok) {
-          const productsData = await response.json()
-          setProducts(productsData)
+          const productsData = await response.json();
+          setProducts(productsData);
         }
       } catch (error) {
-        console.error('Error loading products:', error)
+        console.error('Error loading products:', error);
         // Если API не работает, добавим тестовые товары
         setProducts([
           { id: 1, name: 'Тестовый товар 1', price: 25, category: 'liquids' },
           { id: 2, name: 'Тестовый товар 2', price: 30, category: 'consumables' },
-        ])
+        ]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
     loadProducts()

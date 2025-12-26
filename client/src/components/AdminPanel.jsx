@@ -21,7 +21,7 @@ const AdminPanel = ({ onLogout }) => {
     setLoading(true);
     try {
       // Загрузка товаров с реального API
-      const productsResponse = await fetch('https://paradise-shop-api-production.up.railway.app/api/products');
+      const productsResponse = await fetch('https://paradise-shop-production.up.railway.app/api/products');
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
         setProducts(productsData);
@@ -57,7 +57,7 @@ const AdminPanel = ({ onLogout }) => {
 
   const handleAddProduct = async (product) => {
     try {
-      const response = await fetch('https://paradise-shop-api-production.up.railway.app/api/products', {
+      const response = await fetch('https://paradise-shop-production.up.railway.app/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const AdminPanel = ({ onLogout }) => {
 
   const handleEditProduct = async (product) => {
     try {
-      const response = await fetch(`https://paradise-shop-api-production.up.railway.app/api/products/${product.id}`, {
+      const response = await fetch(`https://paradise-shop-production.up.railway.app/api/products/${product.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const AdminPanel = ({ onLogout }) => {
     if (!confirm('Удалить товар?')) return;
     
     try {
-      const response = await fetch(`https://paradise-shop-api-production.up.railway.app/api/products/${id}`, {
+      const response = await fetch(`https://paradise-shop-production.up.railway.app/api/products/${id}`, {
         method: 'DELETE',
       });
       
