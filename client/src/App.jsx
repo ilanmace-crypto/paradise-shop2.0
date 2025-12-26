@@ -370,14 +370,10 @@ function App() {
         console.error('Error loading products:', error)
       } finally {
         setProductsLoading(false)
+        setLoading(false) // Скрываем preloader после загрузки товаров
       }
     }
     loadProducts()
-  }, [])
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 1200)
-    return () => window.clearTimeout(t)
   }, [])
 
   useEffect(() => {
