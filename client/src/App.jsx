@@ -35,6 +35,7 @@ function Header() {
           </div>
         </div>
         <div className="header-actions">
+          <a href="/admin" className="admin-link">Админ</a>
           <button type="button" className="cart-chip" onClick={() => {}}>
             Корзина
           </button>
