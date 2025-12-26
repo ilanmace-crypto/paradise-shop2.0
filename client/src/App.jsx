@@ -1,10 +1,6 @@
-import { productService } from "./services/productService"
 import { useEffect, useMemo, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import logo from './assets/paradise-shop-logo.svg'
-import AdminLogin from './components/AdminLogin'
-import AdminPanel from './components/AdminPanel'
 
 const TABS = [
   { key: 'liquids', label: 'Жижа' },
@@ -39,7 +35,6 @@ function Header() {
           </div>
         </div>
         <div className="header-actions">
-          <a href="/admin" className="admin-link">Админ</a>
           <button type="button" className="cart-chip" onClick={() => {}}>
             Корзина
           </button>
@@ -358,31 +353,15 @@ function App() {
   const [cartItems, setCartItems] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [products, setProducts] = useState([])
-  const [productsLoading, setProductsLoading] = useState(true)
 
-  // Загрузка товаров с API
+  // Простая загрузка без API
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const productsData = await productService.getProducts()
-        setProducts(productsData)
-      } catch (error) {
-        console.error('Error loading products:', error)
-      } finally {
-        setProductsLoading(false)
-        setLoading(false) // Скрываем preloader в любом случае
-      }
-    }
-    
-    // Добавляем таймаут на случай если API не отвечает
-    const timeoutId = setTimeout(() => {
+    const t = window.setTimeout(() => {
       setLoading(false)
-      setProductsLoading(false)
-    }, 5000) // 5 секунд максимум
-    
-    loadProducts()
-    
-    return () => clearTimeout(timeoutId)
+      // Временно добавим пустые товары чтобы сайт работал
+      setProducts([])
+    }, 1000)
+    return () => window.clearTimeout(t)
   }, [])
 
   useEffect(() => {
@@ -486,45 +465,4 @@ function App() {
   )
 }
 
-function AppWithRouter() {
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  // Проверка админ аутентификации
-  useEffect(() => {
-    const adminAuth = localStorage.getItem('adminAuth')
-    if (adminAuth) {
-      const { timestamp } = JSON.parse(adminAuth)
-      const now = Date.now()
-      if (now - timestamp < 24 * 60 * 60 * 1000) { // 24 часа
-        setIsAdmin(true)
-      } else {
-        localStorage.removeItem('adminAuth')
-      }
-    }
-  }, [])
-
-  const handleAdminLogin = (password) => {
-    if (password === 'paradise251208') {
-      setIsAdmin(true)
-      localStorage.setItem('adminAuth', JSON.stringify({ timestamp: Date.now() }))
-      return true
-    }
-    return false
-  }
-
-  const handleAdminLogout = () => {
-    setIsAdmin(false)
-    localStorage.removeItem('adminAuth')
-  }
-
-  return (
-    <Router>
-      <Routes>
-        <Route path="/admin" element={!isAdmin ? <AdminLogin onLogin={handleAdminLogin} /> : <AdminPanel onLogout={handleAdminLogout} />} />
-        <Route path="/*" element={<App />} />
-      </Routes>
-    </Router>
-  )
-}
-
-export default AppWithRouter
+export default App
