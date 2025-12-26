@@ -20,7 +20,7 @@ const AdminPanel = ({ onLogout }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Загрузка товаров
+      // Загрузка товаров с реального API
       const productsResponse = await fetch('https://paradise-shop-api-production.up.railway.app/api/products');
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
