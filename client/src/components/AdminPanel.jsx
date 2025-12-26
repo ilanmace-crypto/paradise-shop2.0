@@ -20,33 +20,33 @@ const AdminPanel = ({ onLogout }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Загрузка товаров с реального API
-      const productsResponse = await fetch('https://paradise-shop-production.up.railway.app/api/products');
+      // Загрузка всех данных с реального API
+      const [productsResponse, ordersResponse, usersResponse, statsResponse] = await Promise.all([
+        fetch('https://paradise-shop-production.up.railway.app/api/products'),
+        fetch('https://paradise-shop-production.up.railway.app/api/orders'),
+        fetch('https://paradise-shop-production.up.railway.app/api/users'),
+        fetch('https://paradise-shop-production.up.railway.app/api/stats')
+      ]);
+      
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
         setProducts(productsData);
-      } else {
-        throw new Error('Failed to load products');
       }
       
-      // Временно загружаем мок данные для заказов и пользователей
-      setOrders([
-        { id: 1, customer: 'User1', items: 2, total: 50, status: 'pending', date: '26.12.2024' },
-        { id: 2, customer: 'User2', items: 1, total: 25, status: 'completed', date: '26.12.2024' }
-      ]);
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json();
+        setOrders(ordersData);
+      }
       
-      setUsers([
-        { id: 1, name: 'User1', email: 'user1@example.com', orders: 2, total: 50 },
-        { id: 2, name: 'User2', email: 'user2@example.com', orders: 1, total: 25 }
-      ]);
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
+      }
       
-      setStats({
-        totalOrders: 2,
-        totalRevenue: 75,
-        totalUsers: 2,
-        avgOrderValue: 37.5,
-        topProducts: ['PARADISE Liquid 30ml', 'Salt 20mg 30ml']
-      });
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setStats(statsData);
+      }
       
     } catch (err) {
       setError(err.message);
@@ -119,7 +119,7 @@ const AdminPanel = ({ onLogout }) => {
 
   const handleUpdateOrderStatus = async (orderId, status) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
+      const response = await fetch(`https://paradise-shop-production.up.railway.app/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +128,8 @@ const AdminPanel = ({ onLogout }) => {
       });
       
       if (response.ok) {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
+        const updatedOrder = await response.json();
+        setOrders(orders.map(o => o.id === orderId ? updatedOrder : o));
       } else {
         throw new Error('Failed to update order status');
       }
