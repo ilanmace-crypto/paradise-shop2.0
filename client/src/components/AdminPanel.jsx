@@ -17,15 +17,36 @@ const AdminPanel = ({ onLogout }) => {
     loadData();
   }, []);
 
+  // Перезагрузка данных при монтировании компонента
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      loadData();
+    }
+  }, []);
+
   const loadData = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
       // Загрузка всех данных с реального API
       const [productsResponse, ordersResponse, usersResponse, statsResponse] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/orders'),
-        fetch('/api/users'),
-        fetch('/admin/stats')
+        fetch('/admin/products', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/admin/orders', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/admin/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/admin/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
       ]);
       
       if (productsResponse.ok) {
