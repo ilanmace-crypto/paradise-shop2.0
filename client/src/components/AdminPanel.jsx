@@ -470,11 +470,11 @@ function ProductForm({ product, onSubmit, onCancel }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="admin-modal-overlay" onClick={onCancel}>
+      <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-header">
           <h3>{product ? 'Редактировать товар' : 'Добавить товар'}</h3>
-          <button className="modal-close" onClick={onCancel}>×</button>
+          <button className="admin-modal-close" onClick={onCancel}>×</button>
         </div>
         <form onSubmit={handleSubmit} className="product-form">
           <div className="form-group">
