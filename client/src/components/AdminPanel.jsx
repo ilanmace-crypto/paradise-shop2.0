@@ -501,7 +501,7 @@ function ProductForm({ product, onSubmit, onCancel }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{
+    <div className="modal-overlay" onClick={onCancel} style={{
       position: 'fixed',
       top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(255, 0, 0, 0.9)',
@@ -516,7 +516,7 @@ function ProductForm({ product, onSubmit, onCancel }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{product ? 'Редактировать товар' : 'Добавить товар'}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onCancel}>×</button>
         </div>
         <form onSubmit={handleSubmit} className="product-form">
           <div className="form-group">
