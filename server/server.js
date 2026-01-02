@@ -22,7 +22,16 @@ app.use(helmet({
   contentSecurityPolicy: false, // Отключаем CSP для разработки
 }));
 app.use(cors({
-  origin: ['https://paradise-shop-api2.vercel.app', 'https://paradise-shop-api2-c3q9bz9bn-ilyas-projects-671fb6eb.vercel.app', 'https://paradise-shop-api2-c3q9bz9bn-ilyas-projects-671fb6eb.vercel.app/admin'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (origin === 'http://localhost:5173' || origin === 'http://localhost:3000' || origin === 'http://localhost:3001') {
+      return callback(null, true);
+    }
+    if (/^https:\/\/.*\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -111,11 +120,15 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`Products API: http://localhost:${PORT}/api/products`);
-  console.log(`Trust proxy: ${app.get('trust proxy')}`);
-  console.log('Products API ready!');
-  console.log('Server restarted at:', new Date().toISOString());
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log(`Products API: http://localhost:${PORT}/api/products`);
+    console.log(`Trust proxy: ${app.get('trust proxy')}`);
+    console.log('Products API ready!');
+    console.log('Server restarted at:', new Date().toISOString());
+  });
+}
+
+module.exports = app;

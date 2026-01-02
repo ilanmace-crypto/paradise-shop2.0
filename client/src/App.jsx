@@ -331,7 +331,27 @@ function MainApp() {
         const response = await fetch('/api/products');
         if (response.ok) {
           const productsData = await response.json();
-          setProducts(productsData);
+          const normalized = Array.isArray(productsData)
+            ? productsData.map((p) => {
+              const category = Number(p.category_id) === 1
+                ? 'liquids'
+                : (Number(p.category_id) === 2 ? 'consumables' : (p.category || null))
+
+              const flavors = Array.isArray(p.flavors)
+                ? p.flavors
+                  .map((f) => (typeof f === 'string' ? f : (f.flavor_name || f.name)))
+                  .filter(Boolean)
+                : []
+
+              return {
+                ...p,
+                category,
+                flavors,
+              }
+            })
+            : []
+
+          setProducts(normalized);
         }
       } catch (error) {
         console.error('Error loading products:', error);

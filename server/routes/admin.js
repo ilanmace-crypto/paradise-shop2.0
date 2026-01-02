@@ -4,6 +4,36 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/supabase');
 const { authenticateToken, generateToken } = require('../middleware/auth');
 
+const resolveCategoryId = async ({ category_id, category }) => {
+  if (category_id) return Number(category_id);
+  if (!category) return null;
+
+  if (category === 'liquids') return 1;
+  if (category === 'consumables') return 2;
+
+  return null;
+};
+
+const getProductWithRelations = async (productId) => {
+  const productRes = await pool.query(`
+    SELECT p.*, c.name as category_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = $1
+  `, [productId]);
+
+  if (productRes.rows.length === 0) return null;
+  const product = productRes.rows[0];
+
+  const flavorsRes = await pool.query(
+    'SELECT * FROM product_flavors WHERE product_id = $1',
+    [productId]
+  );
+  product.flavors = flavorsRes.rows;
+
+  return product;
+};
+
 // Авторизация админа (временная для теста)
 router.post('/login', async (req, res) => {
   try {
@@ -60,6 +90,25 @@ router.post('/login', async (req, res) => {
     }
   } catch (error) {
     console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Получение всех пользователей (для админа)
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const users = await pool.query(`
+      SELECT u.*,
+             COUNT(o.id) as orders_count,
+             COALESCE(SUM(o.total_amount), 0) as total_spent
+      FROM users u
+      LEFT JOIN orders o ON u.id = o.user_id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `);
+    res.json(users.rows);
+  } catch (error) {
+    console.error('Users error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -176,26 +225,38 @@ router.get('/products', authenticateToken, async (req, res) => {
 // Создание товара
 router.post('/products', authenticateToken, async (req, res) => {
   try {
-    const { name, category_id, price, description, stock, flavors } = req.body;
+    const { name, category_id, category, price, description, stock, flavors, flavor } = req.body;
+
+    const resolvedCategoryId = await resolveCategoryId({ category_id, category });
+    if (!resolvedCategoryId) {
+      return res.status(400).json({ error: 'category_id or valid category is required' });
+    }
     
     const product_id = `product-${Date.now()}`;
     
     await pool.query(`
       INSERT INTO products (id, name, category_id, price, description, stock)
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [product_id, name, category_id, price, description, stock]);
+    `, [product_id, name, resolvedCategoryId, price, description || null, stock]);
     
     // Добавляем вкусы если есть
-    if (flavors && flavors.length > 0) {
-      for (let flavor of flavors) {
+    const normalizedFlavors = Array.isArray(flavors)
+      ? flavors
+      : (flavor ? [{ name: flavor, stock: stock }] : []);
+
+    if (normalizedFlavors.length > 0) {
+      for (let fl of normalizedFlavors) {
+        const flavorName = typeof fl === 'string' ? fl : (fl.name || fl.flavor_name);
+        const flavorStock = typeof fl === 'string' ? stock : (fl.stock ?? stock);
         await pool.query(
           'INSERT INTO product_flavors (product_id, flavor_name, stock) VALUES ($1, $2, $3)',
-          [product_id, flavor.name, flavor.stock]
+          [product_id, flavorName, flavorStock]
         );
       }
     }
-    
-    res.json({ id: product_id, message: 'Product created' });
+
+    const createdProduct = await getProductWithRelations(product_id);
+    res.status(201).json(createdProduct);
   } catch (error) {
     console.error('Create product error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -206,17 +267,40 @@ router.post('/products', authenticateToken, async (req, res) => {
 router.put('/products/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category_id, price, description, stock, is_active } = req.body;
+    const { name, category_id, category, price, description, stock, is_active } = req.body;
+
+    const resolvedCategoryId = await resolveCategoryId({ category_id, category });
+    if (!resolvedCategoryId) {
+      return res.status(400).json({ error: 'category_id or valid category is required' });
+    }
     
     await pool.query(`
       UPDATE products 
       SET name = $1, category_id = $2, price = $3, description = $4, stock = $5, is_active = $6, updated_at = NOW()
       WHERE id = $7
-    `, [name, category_id, price, description, stock, is_active, id]);
-    
-    res.json({ message: 'Product updated' });
+    `, [name, resolvedCategoryId, price, description || null, stock, is_active, id]);
+
+    const updatedProduct = await getProductWithRelations(id);
+    res.json(updatedProduct);
   } catch (error) {
     console.error('Update product error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Удаление товара (soft delete)
+router.delete('/products/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query(
+      'UPDATE products SET is_active = false, updated_at = NOW() WHERE id = $1',
+      [id]
+    );
+
+    res.json({ message: 'Product deleted' });
+  } catch (error) {
+    console.error('Delete product error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -17,14 +17,6 @@ const AdminPanel = ({ onLogout }) => {
     loadData();
   }, []);
 
-  // Перезагрузка данных при монтировании компонента
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      loadData();
-    }
-  }, []);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -51,7 +43,27 @@ const AdminPanel = ({ onLogout }) => {
       
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
-        setProducts(productsData);
+        const normalizedProducts = Array.isArray(productsData)
+          ? productsData.map((p) => {
+            const category = Number(p.category_id) === 1
+              ? 'liquids'
+              : (Number(p.category_id) === 2 ? 'consumables' : (p.category || null));
+
+            const flavors = Array.isArray(p.flavors)
+              ? p.flavors
+                .map((f) => (typeof f === 'string' ? f : (f.flavor_name || f.name)))
+                .filter(Boolean)
+              : [];
+
+            return {
+              ...p,
+              category,
+              flavors,
+            };
+          })
+          : [];
+
+        setProducts(normalizedProducts);
       }
       
       if (ordersResponse.ok) {
@@ -66,7 +78,18 @@ const AdminPanel = ({ onLogout }) => {
       
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
-        setStats(statsData);
+        const totalOrders = Number(statsData?.orders?.total_orders || 0);
+        const totalRevenue = Number(statsData?.orders?.total_revenue || 0);
+        const totalUsers = Number(statsData?.users?.count || 0);
+        const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+
+        setStats({
+          totalOrders,
+          totalRevenue,
+          totalUsers,
+          avgOrderValue,
+          topProducts: [],
+        });
       }
       
     } catch (err) {
