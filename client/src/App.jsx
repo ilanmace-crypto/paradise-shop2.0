@@ -286,39 +286,63 @@ function CartDrawer({ open, items, onClose, onDec, onInc, onRemove, onClear }) {
     <div className={`cart-drawer-overlay ${open ? 'active' : ''}`} aria-hidden={!open}>
       <div className="cart-drawer" role="dialog" aria-modal="true">
         <div className="cart-drawer-header">
-          <div className="cart-drawer-title">Корзина</div>
+          <div className="cart-drawer-title">
+            <span>🛒 Корзина</span>
+            {items.length > 0 && (
+              <span className="cart-count">{items.length} {items.length === 1 ? 'товар' : items.length <= 4 ? 'товара' : 'товаров'}</span>
+            )}
+          </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Закрыть">
-            ×
+            ✕
           </button>
         </div>
 
         <div className="cart-items">
           {items.length === 0 ? (
             <div className="cart-empty">
-              <div className="cart-empty-title">Пусто</div>
-              <div className="cart-empty-text">Добавь товары — и оформим заказ.</div>
+              <div className="cart-empty-icon">🛍️</div>
+              <div className="cart-empty-title">Корзина пуста</div>
+              <div className="cart-empty-text">Добавь товары для оформления заказа</div>
             </div>
           ) : (
-            <div className="cart-items">
+            <div className="cart-items-list">
               {items.map((it) => (
                 <div key={it.key} className="cart-item">
-                  <div className="cart-item-thumb" />
-                  <div className="cart-item-details">
-                    <div className="cart-item-name">{it.name}</div>
+                  <div className="cart-item-image" />
+                  <div className="cart-item-info">
+                    <div className="cart-item-header">
+                      <div className="cart-item-name">{it.name}</div>
+                      <button 
+                        type="button" 
+                        className="cart-item-delete-btn" 
+                        onClick={() => onRemove(it)}
+                        aria-label="Удалить товар"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                     {it.flavor && <div className="cart-item-flavor">Вкус: {it.flavor}</div>}
-                    <div className="cart-item-price">{it.price} BYN</div>
-                  </div>
-                  <div className="cart-item-qty">
-                    <button type="button" className="cart-item-qty-btn" onClick={() => onDec(it)}>
-                      −
-                    </button>
-                    <div className="cart-item-qty-value">{it.qty}</div>
-                    <button type="button" className="cart-item-qty-btn" onClick={() => onInc(it)}>
-                      +
-                    </button>
-                    <button type="button" className="cart-item-remove" onClick={() => onRemove(it)}>
-                      ×
-                    </button>
+                    <div className="cart-item-footer">
+                      <div className="cart-item-price">{it.price} BYN</div>
+                      <div className="cart-item-qty">
+                        <button 
+                          type="button" 
+                          className="qty-btn qty-btn-dec" 
+                          onClick={() => onDec(it)}
+                          disabled={it.qty <= 1}
+                        >
+                          −
+                        </button>
+                        <span className="qty-value">{it.qty}</span>
+                        <button 
+                          type="button" 
+                          className="qty-btn qty-btn-inc" 
+                          onClick={() => onInc(it)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -326,20 +350,30 @@ function CartDrawer({ open, items, onClose, onDec, onInc, onRemove, onClear }) {
           )}
         </div>
 
-        <div className="cart-drawer-footer">
-          <div className="cart-total">
-            <div>Итого</div>
-            <div className="cart-total-value">{total.toFixed(2)} BYN</div>
+        {items.length > 0 && (
+          <div className="cart-drawer-footer">
+            <div className="cart-summary">
+              <div className="cart-total">
+                <span>Итого:</span>
+                <span className="cart-total-value">{total.toFixed(2)} BYN</span>
+              </div>
+              <button 
+                type="button" 
+                className="cart-clear-btn" 
+                onClick={onClear}
+              >
+                Очистить
+              </button>
+            </div>
+            <button
+              type="button"
+              className="checkout-btn"
+              onClick={() => onClose('checkout')}
+            >
+              Оформить заказ →
+            </button>
           </div>
-          <button
-            type="button"
-            className="checkout-btn"
-            disabled={items.length === 0}
-            onClick={() => onClose('checkout')}
-          >
-            Оформить
-          </button>
-        </div>
+        )}
       </div>
     </div>
   )
@@ -360,13 +394,8 @@ function ReviewsPlaceholder() {
         </div>
         <div className="panel" style={{ marginTop: 12 }}>
           <div className="panel-title">Последние отзывы</div>
-          <div className="review">
-            <div className="review-title">@username</div>
-            <div className="review-text">Тут будут реальные отзывы из MySQL.</div>
-          </div>
-          <div className="review">
-            <div className="review-title">@username2</div>
-            <div className="review-text">Сделаем красиво, быстро и удобно.</div>
+          <div className="review-empty">
+            <div>Пока нет отзывов. Будь первым!</div>
           </div>
         </div>
       </div>
